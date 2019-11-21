@@ -106,12 +106,13 @@ def test_by_autogui():  # (3)用 autogui 调用鼠标控制地图移动和缩放
         # 地图还原
         if g_map_type == 'd2c':  # d2c地图
             g_driver.execute_script(
-                f'd2cMap.setCenter({mock.map_view["center"]})')
-            g_driver.execute_script(f'd2cMap.setZoom({mock.map_view["zoom"]})')
+                f'map.setCenter({mock.map_view["center"]})')
+            g_driver.execute_script(f'map.setZoom({mock.map_view["zoom"]})')
         elif g_map_type == 'baidu':  # 百度地图
             g_driver.execute_script(
                 f'map.setCenter(new BMap.Point({mock.baidu_map_view["lng"]},{mock.baidu_map_view["lat"]}))')
             g_driver.execute_script(f'map.setZoom({mock.map_view["zoom"]})')
+        sleep(2)
 
         # 鼠标滚动
         pyautogui.moveTo(screen_width / 2, screen_height / 2)  # 鼠标移动
@@ -119,7 +120,7 @@ def test_by_autogui():  # (3)用 autogui 调用鼠标控制地图移动和缩放
             if is_stop():
                 break
             pyautogui.scroll(scroll)  # 鼠标滚轮滚动
-            sleep(1)
+            sleep(1.5)
 
         # 鼠标拖动
         for drag in mock.drags:
@@ -127,7 +128,7 @@ def test_by_autogui():  # (3)用 autogui 调用鼠标控制地图移动和缩放
                 break
             pyautogui.moveTo(drag['from'][0], drag['from'][1])
             pyautogui.dragTo(drag['to'][0], drag['to'][1], duration=0.2)
-            sleep(1)
+            sleep(1.5)
 
     # 退出
     g_driver.close()
@@ -263,8 +264,6 @@ def keyboard_listener():  # (8)监听键盘 ctrl+alt+s ，停止程序
 def is_stop():  # (9)是否停止程序
     global g_end_time
     g_end_time = int(datetime.now().timestamp())
-    print(g_end_time-g_start_time)
-    print(g_run_minutes*60)
     return (not g_is_running) or (g_end_time-g_start_time > g_run_minutes*60)
 
 

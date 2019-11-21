@@ -3,7 +3,7 @@ import pyautogui
 # ------地图默认视图------
 
 map_view = {
-    'center': [106.55519368050636, 29.564911064035726],
+    'center': [106.5590013579515, 29.55910442310595],
     'zoom': 12
 }
 baidu_map_view = {
@@ -11,6 +11,50 @@ baidu_map_view = {
     'lat': 3426754.14429871,
     'zoom': 13.590195544218748
 }
+
+
+# ------ autogui 方式------
+
+# 鼠标滚动
+scrolls = []
+scrolls.extend([-1000 for i in range(8)])
+scrolls.extend([1000 for i in range(15)])
+
+# 鼠标拖动（构造螺旋形路径）
+screen_width, screen_height = pyautogui.size()  # 屏幕大小
+center_x, center_y = screen_width/2, screen_height/2
+drags = []
+direction = 'bottom'  # 拖动方向
+drag_num = 0  # 方向上的拖动次数
+drag_add_num = 1  # 每次增加的次数
+for i in range(50):
+    if direction == 'bottom':  # 向下
+        drag_num = drag_num+drag_add_num
+        drags.extend([{'from': (center_x, center_y+300),
+                       'to': (center_x, center_y-300)} for i in range(drag_num)])
+        direction = 'right'
+    elif direction == 'right':  # 向右
+        drags.extend([{'from': (center_x-300, center_y),
+                       'to': (center_x+300, center_y)} for i in range(drag_num)])
+        direction = 'top'
+    elif direction == 'top':  # 向上
+        drag_num = drag_num+drag_add_num
+        drags.extend([{'from': (center_x, center_y-300),
+                       'to': (center_x, center_y+300)} for i in range(drag_num)])
+        direction = 'left'
+    elif direction == 'left':  # 向左
+        drags.extend([{'from': (center_x+300, center_y),
+                       'to': (center_x-300, center_y)} for i in range(drag_num)])
+        direction = 'bottom'
+
+# drags.extend([{'from': (screen_width/2-300, screen_height/2),
+#                'to': (screen_width/2+300, screen_height/2)} for i in range(8)])
+# drags.extend([{'from': (screen_width/2+300, screen_height/2),
+#                'to': (screen_width/2-300, screen_height/2)} for i in range(20)])
+# drags.extend([{'from': (screen_width/2-300, screen_height/2),
+#                'to': (screen_width/2+300, screen_height/2)} for i in range(10)])
+# drags.extend([{'from': (screen_width/2+200, screen_height/2-200),
+#                'to': (screen_width/2-200, screen_height/2+200)} for i in range(20)])
 
 
 # ------ javascript 方式------
@@ -124,46 +168,3 @@ points = [
     [106.41591021927889, 29.620478446351484],
     [106.49514029769398, 29.615992152374687]
 ]
-
-# ------ autogui 方式------
-
-# 鼠标滚动
-scrolls = []
-scrolls.extend([-1000 for i in range(8)])
-scrolls.extend([1000 for i in range(15)])
-
-# 鼠标拖动（构造螺旋形路径）
-screen_width, screen_height = pyautogui.size()  # 屏幕大小
-center_x, center_y = screen_width/2, screen_height/2
-drags = []
-direction = 'bottom'  # 拖动方向
-drag_num = 0  # 方向上的拖动次数
-drag_add_num = 5  # 每次增加的次数
-for i in range(10):
-    if direction == 'bottom':  # 向下
-        drag_num = drag_num+drag_add_num
-        drags.extend([{'from': (center_x, center_y+300),
-                       'to': (center_x, center_y-300)} for i in range(drag_num)])
-        direction = 'right'
-    elif direction == 'right':  # 向右
-        drags.extend([{'from': (center_x-300, center_y),
-                       'to': (center_x+300, center_y)} for i in range(drag_num)])
-        direction = 'top'
-    elif direction == 'top':  # 向上
-        drag_num = drag_num+drag_add_num
-        drags.extend([{'from': (center_x, center_y-300),
-                       'to': (center_x, center_y+300)} for i in range(drag_num)])
-        direction = 'left'
-    elif direction == 'left':  # 向左
-        drags.extend([{'from': (center_x+300, center_y),
-                       'to': (center_x-300, center_y)} for i in range(drag_num)])
-        direction = 'bottom'
-
-# drags.extend([{'from': (screen_width/2-300, screen_height/2),
-#                'to': (screen_width/2+300, screen_height/2)} for i in range(8)])
-# drags.extend([{'from': (screen_width/2+300, screen_height/2),
-#                'to': (screen_width/2-300, screen_height/2)} for i in range(20)])
-# drags.extend([{'from': (screen_width/2-300, screen_height/2),
-#                'to': (screen_width/2+300, screen_height/2)} for i in range(10)])
-# drags.extend([{'from': (screen_width/2+200, screen_height/2-200),
-#                'to': (screen_width/2-200, screen_height/2+200)} for i in range(20)])
