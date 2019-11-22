@@ -5,16 +5,21 @@ from time import sleep
 from selenium import webdriver
 
 
-def main(type):
+def main(type):  # 官方说明：https://selenium.dev/documentation/en/webdriver/driver_requirements/
     driver = None
     if type == 'chrome':
-        driver = webdriver.Chrome('../webdriver/chromedriver.exe')
+        driver = webdriver.Chrome(executable_path='../webdriver/chromedriver')
     elif type == 'firefox':
-        driver = webdriver.Firefox('../webdriver/geckodriver.exe')
+        driver = webdriver.Firefox(executable_path='../webdriver/geckodriver')
     elif type == 'edge':
-        driver = webdriver.Edge('../webdriver/msedgedriver.exe')
+        driver = webdriver.Edge(
+            executable_path='../webdriver/MicrosoftWebDriver.exe')
     elif type == 'ie':
-        driver = webdriver.Ie('../webdriver/IEDriverServer.exe')
+        driver = webdriver.Ie(
+            executable_path='../webdriver/IEDriverServer.exe')
+    elif type == 'opera':
+        driver = webdriver.Opera(
+            executable_path='../webdriver/operadriver.exe')
     if driver:
         driver.get('https://www.baidu.com')
         driver.maximize_window()
@@ -24,4 +29,4 @@ def main(type):
 
 
 if __name__ == '__main__':
-    main('ie')
+    main('chrome')
