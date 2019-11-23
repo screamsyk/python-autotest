@@ -60,5 +60,6 @@ typings/
 # next.js build output
 .next
 
-# dist文件夹
+# 文件夹
 dist/
+__pycache__
