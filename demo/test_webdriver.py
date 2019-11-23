@@ -24,6 +24,8 @@ def main(type):  # 官方说明：https://selenium.dev/documentation/en/webdrive
         driver.get('https://www.baidu.com')
         driver.maximize_window()
         sleep(2)
+        driver.close()
+        driver.quit()
     else:
         print('浏览器驱动不存在')
 

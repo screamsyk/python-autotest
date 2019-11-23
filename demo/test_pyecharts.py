@@ -1,13 +1,15 @@
+# 内置模块
 import json
 
+# 第三方模块
 from pyecharts import options as opts
 from pyecharts.faker import Faker
 from pyecharts.charts import Line
 from pyecharts.globals import ThemeType
 
 
-def main():
-    with open('result2.json') as f:
+def main(url):  # 官方说明：https://pyecharts.org/#/zh-cn/intro
+    with open(url) as f:
         result = json.load(f)
         xaxis = []
         yaxis_cpu_percent = []
@@ -52,4 +54,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main('result2.json')
