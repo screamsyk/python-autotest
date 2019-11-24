@@ -62,4 +62,5 @@ typings/
 
 # 文件夹
 dist/
-__pycache__
+build/
+__pycache__/
