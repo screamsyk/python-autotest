@@ -119,16 +119,23 @@ def record_data():  # (2)记录数据
 def save_to_excel():  # (3)保存数据到 excel
     filename = g_config['excel']
     if os.path.isfile(filename):
-        workbook = openpyxl.load_workbook(filename)
-        worksheet = workbook.worksheets[0]
+        wb = openpyxl.load_workbook(filename)
     else:
-        workbook = openpyxl.Workbook()
-        worksheet = workbook.active
-    now_col = worksheet.max_column+1
-    worksheet.cell(row=1, column=now_col+1).value = g_config['name']
-    worksheet.cell(row=3, column=now_col+1).value = 'CUP 使用率'
-    worksheet.cell(row=3, column=now_col+2).value = '内存使用率'
-    worksheet.cell(row=3, column=now_col+3).value = '已用内存'
+        wb = openpyxl.Workbook()
+    ws = wb.active
+    now_col = 1 if ws.max_column in [0, 1] else ws.max_column+2
+    ws.column_dimensions[openpyxl.utils.get_column_letter(now_col)].width = 20
+    ws.column_dimensions[openpyxl.utils.get_column_letter(
+        now_col+1)].width = 20
+    ws.column_dimensions[openpyxl.utils.get_column_letter(
+        now_col+2)].width = 20
+    name_cell = ws.cell(row=1, column=now_col, value=g_config['name'])
+    name_cell.font = openpyxl.styles.Font(bold=True)
+    ws.merge_cells(start_row=1, start_column=now_col,
+                   end_row=1, end_column=now_col+2)
+    ws.cell(row=3, column=now_col).value = 'CUP 使用率'
+    ws.cell(row=3, column=now_col+1).value = '内存使用率'
+    ws.cell(row=3, column=now_col+2).value = '已用内存'
     now_row = 4
     cpu_percent_sum = 0
     cpu_percent_avg = 0
@@ -146,27 +153,37 @@ def save_to_excel():  # (3)保存数据到 excel
             cpu_percent_over = cpu_percent_over+1
         if record['memory_percent'] >= 90:
             memory_percent_over = memory_percent_over+1
-        worksheet.cell(row=now_row, column=now_col +
-                       1).value = record['cpu_percent']
-        worksheet.cell(row=now_row, column=now_col +
-                       2).value = record['memory_percent']
-        worksheet.cell(row=now_row, column=now_col +
-                       3).value = record['memory']
+        ws.cell(row=now_row, column=now_col).value = record['cpu_percent']
+        ws.cell(row=now_row, column=now_col +
+                1).value = record['memory_percent']
+        ws.cell(row=now_row, column=now_col +
+                2).value = record['memory']
         now_row = now_row+1
     length = len(g_records)
     cpu_percent_avg = cpu_percent_sum/length
     memory_avg = memory_sum/length
     memory_percent_avg = memory_percent_sum/length
-    worksheet.cell(row=2, column=now_col +
-                   1).value = f'统计（{datetime.fromtimestamp(g_start_time)}至{datetime.fromtimestamp(g_end_time)}）：（1）CPU 平均使用率：{float("%.2f" % cpu_percent_avg)}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{float("%.2f" % memory_percent_avg)}%；（4）内存使用用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{int(memory_avg)}'
-    workbook.save(filename=filename)
-    print('测试开始时间：', datetime.fromtimestamp(g_start_time))
-    print('测试结束时间：', datetime.fromtimestamp(g_end_time))
-    print('CPU 平均使用率：', float('%.2f' % cpu_percent_avg), '%')
-    print('CPU 使用率达 90% 及以上次数：', cpu_percent_over)
-    print('内存平均使用率：', float('%.2f' % memory_percent_avg), '%')
-    print('内存使用用率达 90% 及以上次数：', memory_percent_over)
-    print('内存平均使用大小：', int(memory_avg))
+    stat = [
+        datetime.fromtimestamp(g_start_time),
+        datetime.fromtimestamp(g_end_time),
+        float("%.2f" % cpu_percent_avg),
+        cpu_percent_over,
+        float("%.2f" % memory_percent_avg),
+        memory_percent_over,
+        int(memory_avg)
+    ]
+    ws.cell(
+        row=2, column=now_col).value = f'统计（{stat[0]}至{stat[1]}）：（1）CPU 平均使用率：{stat[2]}%；（2）CPU 使用率达 90% 及以上次数：{stat[3]}；（3）内存平均使用率：{stat[4]}%；（4）内存使用用率达 90% 及以上次数：{stat[5]}；（5）内存平均使用大小：{stat[6]}'
+    ws.merge_cells(start_row=2, start_column=now_col,
+                   end_row=2, end_column=now_col+2)
+    wb.save(filename=filename)
+    print('测试开始时间：', stat[0])
+    print('测试结束时间：', stat[1])
+    print('CPU 平均使用率：', stat[2], '%')
+    print('CPU 使用率达 90% 及以上次数：', stat[3])
+    print('内存平均使用率：', stat[4], '%')
+    print('内存使用用率达 90% 及以上次数：', stat[5])
+    print('内存平均使用大小：', stat[6])
 
 
 def save_to_json():  # (4)保存数据到 json 文件
