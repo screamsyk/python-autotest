@@ -34,8 +34,10 @@ def operate_map():  # (1)操作地图
     center_x, center_y = screen_width/2, screen_height/2
     drags = []
     direction = 'right'  # 拖动方向
-    num = 0  # 拖动次数
-    for i in range(50):
+    num = 0  # 方向上的拖动次数
+    total = 50
+    while total > 0:
+        total -= 1
         if direction == 'right':  # 向右
             num = num+1
             drags.extend([{'direction': 'right', 'from': (center_x+300, center_y),
@@ -54,7 +56,6 @@ def operate_map():  # (1)操作地图
             drags.extend([{'direction': 'top', 'from': (center_x, center_y-300),
                            'to': (center_x, center_y+300)} for i in range(num)])
             direction = 'right'
-    length = len(drags)
 
     # 生成拖动时的缩放过程（缩-放-缩）
     scrolls = []
@@ -78,15 +79,18 @@ def operate_map():  # (1)操作地图
             sleep(1.5)
 
         # 鼠标拖动地图，并缩放地图
-        for index, drag in enumerate(drags):
+        drag_num = 0
+        for drag in drags:
             if is_stop():
                 break
+            drag_num += 1
             pyautogui.moveTo(drag['from'][0], drag['from'][1])
             pyautogui.dragTo(drag['to'][0], drag['to']
                              [1], duration=0.2)
             sleep(1.5)
-            # 转变方向时，才缩放
-            if index+1 < length and drags[index]['direction'] != drags[index+1]['direction']:
+            # 每拖动 3 下，进行缩放
+            if drag_num == 3:
+                drag_num = 0
                 for scroll in scrolls:
                     if is_stop():
                         break
