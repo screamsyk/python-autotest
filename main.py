@@ -103,15 +103,16 @@ def operate_map():  # (1)操作地图
     g_driver.quit()
 
 
-def record_data():  # (2)记录数据
+def record_data():  # (2)记录数据（每秒统计下 CPU 使用率、内存使用率、已用内存）
     while g_is_running:
-        cpu_percent = psutil.cpu_percent(1)  # 每秒统计下 CPU 使用率、内存使用率、已用内存
+        time = datetime.now().strftime('%H:%M:%S')
+        cpu_percent = psutil.cpu_percent()
         memory_percent = psutil.virtual_memory().percent
         memory = psutil.virtual_memory().used
-        time = datetime.now().strftime('%H:%M:%S')
         record = {'time': time, 'cpu_percent': cpu_percent,
                   'memory_percent': memory_percent, 'memory': memory}
         g_records.append(record)
+        sleep(1)
     save_to_excel()
     save_to_json()
 
