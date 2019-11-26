@@ -64,11 +64,13 @@ def operate_map():  # (1)操作地图
     scrolls.extend([-1000 for i in range(2)])
 
     # 循环操作
+    interval = float(g_config['interval'])
     while not is_stop():
 
         # 地图初始化
         script = 'd2cMap.setCenter([106.5590013579515, 29.55910442310595]);d2cMap.setZoom(12)'
         g_driver.execute_script(script)
+        sleep(interval)
 
         # 鼠标缩放地图
         for init_scroll in init_scrolls:
@@ -76,7 +78,7 @@ def operate_map():  # (1)操作地图
                 break
             pyautogui.moveTo(center_x, center_y)
             pyautogui.scroll(init_scroll)
-            sleep(1.5)
+            sleep(interval)
 
         # 鼠标拖动地图，并缩放地图
         drag_num = 0
@@ -87,7 +89,7 @@ def operate_map():  # (1)操作地图
             pyautogui.moveTo(drag['from'][0], drag['from'][1])
             pyautogui.dragTo(drag['to'][0], drag['to']
                              [1], duration=0.2)
-            sleep(1.5)
+            sleep(interval)
             # 每拖动 3 下，进行缩放
             if drag_num == 3:
                 drag_num = 0
@@ -96,7 +98,7 @@ def operate_map():  # (1)操作地图
                         break
                     pyautogui.moveTo(center_x, center_y)
                     pyautogui.scroll(scroll)
-                    sleep(1.5)
+                    sleep(interval)
 
     # 退出
     g_driver.close()
