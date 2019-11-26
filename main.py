@@ -64,7 +64,7 @@ def operate_map():  # (1)操作地图
     scrolls.extend([-1000 for i in range(2)])
 
     # 循环操作
-    interval = float(g_config['interval'])
+    interval = float(g_config['operate_interval'])
     while not is_stop():
 
         # 地图初始化
@@ -106,7 +106,7 @@ def operate_map():  # (1)操作地图
 
 
 def record_data():  # (2)记录数据（每秒统计下 CPU 使用率、内存使用率、已用内存）
-    interval = float(g_config['interval'])
+    interval = float(g_config['record_interval'])
     while g_is_running:
         time = datetime.now().strftime('%H:%M:%S')
         cpu_percent = psutil.cpu_percent()
