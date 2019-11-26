@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{title}}</title>
+    <script src="https://cdn.bootcss.com/echarts/4.3.0/echarts.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            padding: 40px;
+        }
+
+        #chartId {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chartId"></div>
+    {{dataScript}}
+    <script>
+        var myChart = echarts.init(document.getElementById('chartId'));
+        var option = {
+            title: {
+                text: '{{text}}',
+                subtext: '{{subtext}}',
+                x: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    animation: false
+                }
+            },
+            legend: {
+                show: false
+            },
+            color: ['#32C5E9'],
+            toolbox: {
+                right: 110,
+                top: 8,
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            axisPointer: {
+                link: { xAxisIndex: 'all' }
+            },
+            dataZoom: [
+                {
+                    show: true,
+                }
+            ],
+            visualMap: {
+                top: 10,
+                right: 10,
+                pieces: [
+                    {
+                        gt: 0,
+                        lte: 60,
+                        color: '#4ae086'
+                    }, {
+                        gt: 60,
+                        lte: 90,
+                        color: '#fe8f47'
+                    }, {
+                        gt: 90,
+                        lte: 100,
+                        color: '#f34a29'
+                    }
+                ]
+            },
+            grid: [{
+                left: 100,
+                right: 100,
+                height: '35%'
+            }, {
+                left: 100,
+                right: 100,
+                top: '55%',
+                height: '35%'
+            }],
+            xAxis: [
+                {
+                    name: '时间',
+                    type: 'category',
+                    boundaryGap: false,
+                    axisLine: { onZero: true },
+                    data: xData
+                },
+                {
+                    gridIndex: 1,
+                    name: '时间',
+                    type: 'category',
+                    boundaryGap: false,
+                    axisLine: { onZero: true },
+                    data: xData
+                }
+            ],
+            yAxis: [
+                {
+                    name: 'CPU 使用率(%)',
+                    type: 'value',
+                    max: 100
+                },
+                {
+                    gridIndex: 1,
+                    name: '内存使用率(%)',
+                    type: 'value',
+                    max: 100
+                }
+            ],
+            series: [
+                {
+                    name: 'CPU 使用率',
+                    type: 'line',
+                    data: yData_cpu,
+                    markLine: {
+                        label: {
+                            position: 'start'
+                        },
+                        data: [
+                            { type: 'average', name: '平均值' }
+                        ]
+                    }
+                },
+                {
+                    name: '内存使用率',
+                    type: 'line',
+                    xAxisIndex: 1,
+                    yAxisIndex: 1,
+                    data: yData_memory,
+                    markLine: {
+                        label: {
+                            position: 'start'
+                        },
+                        data: [
+                            { type: 'average', name: '平均值' }
+                        ]
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+        var timeout = null;
+        window.addEventListener('resize', function () {
+            clearTimeout(timeout)
+            timeout = setTimeout(function () {
+                myChart.resize();
+            }, 100);
+        })
+    </script>
+</body>
+
+</html>

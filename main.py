@@ -114,11 +114,45 @@ def record_data():  # (2)记录数据（每秒统计下 CPU 使用率、内存�
                   'memory_percent': memory_percent, 'memory': memory}
         g_records.append(record)
         sleep(interval)
-    save_to_excel()
+    stat_data()
+
+
+def stat_data():  # (3)统计数据
+    xData = []
+    yData_cpu = []
+    yData_memory = []
+    cpu_percent_sum = 0
+    cpu_percent_avg = 0
+    cpu_percent_over = 0
+    memory_sum = 0
+    memory_avg = 0
+    memory_percent_sum = 0
+    memory_percent_avg = 0
+    memory_percent_over = 0
+    for record in g_records:
+        xData.append(record['time'])
+        yData_cpu.append(record['cpu_percent'])
+        yData_memory.append(record['memory_percent'])
+        cpu_percent_sum = cpu_percent_sum+record['cpu_percent']
+        memory_sum = memory_sum+record['memory']
+        memory_percent_sum = memory_percent_sum+record['memory_percent']
+        if record['cpu_percent'] >= 90:
+            cpu_percent_over = cpu_percent_over+1
+        if record['memory_percent'] >= 90:
+            memory_percent_over = memory_percent_over+1
+    length = len(g_records)
+    cpu_percent_avg = cpu_percent_sum/length
+    memory_avg = memory_sum/length
+    memory_percent_avg = memory_percent_sum/length
+    stat_info = f'（1）CPU 平均使用率：{float("%.2f" % cpu_percent_avg)}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{float("%.2f" % memory_percent_avg)}%；（4）内存使用用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{int(memory_avg)}'
+    save_to_excel(stat_info)
     save_to_json()
+    save_to_chart(xData, yData_cpu, yData_memory, stat_info)
+    print('------程序停止------')
+    print('测试结果：', stat_info)
 
 
-def save_to_excel():  # (3)保存数据到 excel
+def save_to_excel(stat_info):  # (4)保存数据到 excel
     filename = g_config['excel']
     if os.path.isfile(filename):
         wb = openpyxl.load_workbook(filename)
@@ -135,67 +169,48 @@ def save_to_excel():  # (3)保存数据到 excel
     name_cell.font = openpyxl.styles.Font(bold=True)
     ws.merge_cells(start_row=1, start_column=now_col,
                    end_row=1, end_column=now_col+2)
+    ws.cell(
+        row=2, column=now_col).value = f'统计（{datetime.fromtimestamp(g_start_time)}至{datetime.fromtimestamp(g_end_time)}）：{stat_info}'
+    ws.merge_cells(start_row=2, start_column=now_col,
+                   end_row=2, end_column=now_col+2)
     ws.cell(row=3, column=now_col).value = 'CUP 使用率'
     ws.cell(row=3, column=now_col+1).value = '内存使用率'
     ws.cell(row=3, column=now_col+2).value = '已用内存'
     now_row = 4
-    cpu_percent_sum = 0
-    cpu_percent_avg = 0
-    cpu_percent_over = 0
-    memory_sum = 0
-    memory_avg = 0
-    memory_percent_sum = 0
-    memory_percent_avg = 0
-    memory_percent_over = 0
     for record in g_records:
-        cpu_percent_sum = cpu_percent_sum+record['cpu_percent']
-        memory_sum = memory_sum+record['memory']
-        memory_percent_sum = memory_percent_sum+record['memory_percent']
-        if record['cpu_percent'] >= 90:
-            cpu_percent_over = cpu_percent_over+1
-        if record['memory_percent'] >= 90:
-            memory_percent_over = memory_percent_over+1
         ws.cell(row=now_row, column=now_col).value = record['cpu_percent']
         ws.cell(row=now_row, column=now_col +
                 1).value = record['memory_percent']
         ws.cell(row=now_row, column=now_col +
                 2).value = record['memory']
         now_row = now_row+1
-    length = len(g_records)
-    cpu_percent_avg = cpu_percent_sum/length
-    memory_avg = memory_sum/length
-    memory_percent_avg = memory_percent_sum/length
-    stat = [
-        datetime.fromtimestamp(g_start_time),
-        datetime.fromtimestamp(g_end_time),
-        float("%.2f" % cpu_percent_avg),
-        cpu_percent_over,
-        float("%.2f" % memory_percent_avg),
-        memory_percent_over,
-        int(memory_avg)
-    ]
-    ws.cell(
-        row=2, column=now_col).value = f'统计（{stat[0]}至{stat[1]}）：（1）CPU 平均使用率：{stat[2]}%；（2）CPU 使用率达 90% 及以上次数：{stat[3]}；（3）内存平均使用率：{stat[4]}%；（4）内存使用用率达 90% 及以上次数：{stat[5]}；（5）内存平均使用大小：{stat[6]}'
-    ws.merge_cells(start_row=2, start_column=now_col,
-                   end_row=2, end_column=now_col+2)
     wb.save(filename=filename)
-    print('测试开始时间：', stat[0])
-    print('测试结束时间：', stat[1])
-    print('CPU 平均使用率：', stat[2], '%')
-    print('CPU 使用率达 90% 及以上次数：', stat[3])
-    print('内存平均使用率：', stat[4], '%')
-    print('内存使用用率达 90% 及以上次数：', stat[5])
-    print('内存平均使用大小：', stat[6])
 
 
-def save_to_json():  # (4)保存数据到 json 文件
-    filename = g_config['name']+'.json'
-    obj = {'title': g_config['name'], 'records': g_records}
-    with open(filename, 'w+') as f:
+def save_to_json():  # (5)保存数据到 json 文件
+    name = g_config['name']
+    obj = {'title': name, 'records': g_records}
+    with open(f'{name}.json', 'w') as f:
         f.write(json.dumps(obj))
 
 
-def is_stop():  # (5)是否停止程序
+def save_to_chart(xData, yData_cpu, yData_memory, stat_info):  # (6)保存到图表
+    name = g_config['name']
+    with open('conf/line_template.html', 'r', encoding='utf-8') as f:
+        html = f.read()
+        new_html = html.replace('{{title}}', name).replace(
+            '{{text}}', name).replace('{{subtext}}', stat_info).replace('{{dataScript}}', f'''
+    <script>
+        var xData={json.dumps(xData)};
+        var yData_cpu={json.dumps(yData_cpu)};
+        var yData_memory={json.dumps(yData_memory)};
+    </script>
+        ''')
+    with open(f'{name}.html', 'w', encoding='utf-8') as new_f:
+        new_f.write(new_html)
+
+
+def is_stop():  # (7)是否停止程序
     global g_end_time
     global g_is_running
     g_end_time = int(datetime.now().timestamp())
@@ -205,13 +220,10 @@ def is_stop():  # (5)是否停止程序
     return not g_is_running
 
 
-def stop():  # (6)停止程序
-    global g_is_running
-    g_is_running = False
-    print('------程序停止------')
-
-
-def keyboard_listener():  # (7)快捷键监听，停止程序
+def keyboard_listener():  # (8)快捷键监听，停止程序
+    def stop():
+        global g_is_running
+        g_is_running = False
     keyboard.add_hotkey('ctrl+alt+s', stop)
 
 
