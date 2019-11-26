@@ -138,10 +138,10 @@ def test_by_autogui():  # (3)用 autogui 调用鼠标控制地图移动和缩放
 
 def record_data():  # (4)记录 CPU 、内存等数据
     while g_is_running:
-        time = datetime.now().strftime('%H:%M:%S')
         cpu_percent = psutil.cpu_percent(1)  # 每秒统计下 CPU 使用率、内存使用率、已用内存
         memory_percent = psutil.virtual_memory().percent
         memory = psutil.virtual_memory().used
+        time = datetime.now().strftime('%H:%M:%S')
         record = {'time': time, 'cpu_percent': cpu_percent,
                   'memory_percent': memory_percent, 'memory': memory}
         g_records.append(record)
