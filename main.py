@@ -194,8 +194,8 @@ def save_to_excel(stat_info):  # (4)保存数据到 excel
 def save_to_json():  # (5)保存数据到 json 文件
     name = g_config['name']
     obj = {'title': name, 'records': g_records}
-    with open(f'{name}.json', 'w') as f:
-        f.write(json.dumps(obj))
+    with open(f'{name}.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps(obj, ensure_ascii=False))
 
 
 def save_to_chart(xData, yData_cpu, yData_memory, stat_info):  # (6)保存到图表
