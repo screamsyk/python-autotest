@@ -5,6 +5,7 @@ from time import sleep
 from datetime import datetime
 import json
 import os
+import hashlib
 
 # 第三方模块
 from selenium import webdriver
@@ -12,6 +13,7 @@ import keyboard
 import pyautogui
 import psutil
 import openpyxl
+import requests
 
 # 全局数据
 g_config = None
@@ -261,6 +263,23 @@ def main():
         path = 'webdriver/operadriver.exe'
         g_driver = webdriver.Opera(executable_path=path)
     g_driver.maximize_window()
+
+    # 是否需要登录
+    if g_config['need_login'] == 'true':
+        md5 = hashlib.md5()
+        md5.update(g_config['password'].encode(encoding='utf-8'))
+        password = md5.hexdigest()
+        data = {
+            'userName': g_config['username'],
+            'password': password
+        }
+        res = requests.post(g_config['login_url'], data)
+        cookie = 'Admin-Token='+res.headers['AUTH_TOKEN']
+        g_driver.get(g_config['home_url'])
+        g_driver.execute_script(f'document.cookie="{cookie}"')
+        sleep(1)
+
+    # 打开地图测试地址
     g_driver.get(g_config['url'])
     print('正在打开地图...')
     sleep(10)
