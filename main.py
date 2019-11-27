@@ -66,7 +66,7 @@ def operate_map():  # (1)操作地图
     scrolls.extend([-1000 for i in range(2)])
 
     # 循环操作
-    interval = float(g_config['operate_interval'])
+    interval = g_config.getfloat('operate_interval')
     while not is_stop():
 
         # 地图初始化
@@ -108,7 +108,7 @@ def operate_map():  # (1)操作地图
 
 
 def record_data():  # (2)记录数据（每秒统计下 CPU 使用率、内存使用率、已用内存）
-    interval = float(g_config['record_interval'])
+    interval = g_config.getfloat('record_interval')
     while g_is_running:
         time = datetime.now().strftime('%H:%M:%S')
         cpu_percent = psutil.cpu_percent()
@@ -218,7 +218,7 @@ def is_stop():  # (7)是否停止程序
     global g_end_time
     global g_is_running
     g_end_time = int(datetime.now().timestamp())
-    time = int(g_config['minute'])*60
+    time = g_config.getfloat('minute')*60
     if g_end_time-g_start_time > time:
         g_is_running = False
     return not g_is_running
@@ -265,7 +265,7 @@ def main():
     g_driver.maximize_window()
 
     # 是否需要登录
-    if g_config['need_login'] == 'true':
+    if g_config.getboolean('need_login'):
         md5 = hashlib.md5()
         md5.update(g_config['password'].encode(encoding='utf-8'))
         password = md5.hexdigest()
