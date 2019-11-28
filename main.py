@@ -5,7 +5,6 @@ from time import sleep
 from datetime import datetime
 import json
 import os
-import hashlib
 
 # 第三方模块
 from selenium import webdriver
@@ -70,7 +69,8 @@ def operate_map():  # (1)操作地图
     while not is_stop():
 
         # 地图初始化
-        script = 'd2cMap.setCenter([106.5590013579515, 29.55910442310595]);d2cMap.setZoom(12)'
+        map_obj = g_config['map_obj']
+        script = f'{map_obj}.setCenter([106.5590013579515, 29.55910442310595]);{map_obj}.setZoom(12)'
         g_driver.execute_script(script)
         sleep(interval)
 
@@ -228,14 +228,26 @@ def keyboard_listener():  # (8)快捷键监听，停止程序
     def stop():
         global g_is_running
         g_is_running = False
-    keyboard.add_hotkey('ctrl+alt+s', stop)
+    keyboard.add_hotkey('ctrl+alt+e', stop)
+
+
+def start():  # (9)开始测试
+    global g_start_time
+    global g_is_running
+    print('------开始测试，通过快捷键 ctrl+alt+e 结束测试------')
+    g_start_time = int(datetime.now().timestamp())
+    g_is_running = True
+    t1 = Thread(target=operate_map, name='operate_map')
+    t2 = Thread(target=record_data, name='record_data')
+    t3 = Thread(target=keyboard_listener, name='keyboard_listener')
+    t1.start()
+    t2.start()
+    t3.start()
 
 
 def main():
     global g_config
     global g_driver
-    global g_start_time
-    global g_is_running
 
     # 读取配置信息
     config = ConfigParser()
@@ -263,37 +275,19 @@ def main():
         path = 'webdriver/operadriver.exe'
         g_driver = webdriver.Opera(executable_path=path)
     g_driver.maximize_window()
+    g_driver.get(g_config['url'])
 
     # 是否需要登录
     if g_config.getboolean('need_login'):
-        md5 = hashlib.md5()
-        md5.update(g_config['password'].encode(encoding='utf-8'))
-        password = md5.hexdigest()
-        data = {
-            'userName': g_config['username'],
-            'password': password
-        }
-        res = requests.post(g_config['login_url'], data)
-        cookie = 'Admin-Token='+res.headers['AUTH_TOKEN']
-        g_driver.get(g_config['home_url'])
-        g_driver.execute_script(f'document.cookie="{cookie}"')
         sleep(1)
+        inputs = g_driver.find_elements_by_tag_name('input')
+        inputs[0].send_keys(g_config['username'])
+        inputs[1].send_keys(g_config['password'])
 
-    # 打开地图测试地址
-    g_driver.get(g_config['url'])
-    print('正在打开地图...')
-    sleep(10)
-
-    # 开启线程操作地图和记录数据
-    print('------开始测试------')
-    g_start_time = int(datetime.now().timestamp())
-    g_is_running = True
-    t1 = Thread(target=operate_map, name='operate_map')
-    t2 = Thread(target=record_data, name='record_data')
-    t3 = Thread(target=keyboard_listener, name='keyboard_listener')
-    t1.start()
-    t2.start()
-    t3.start()
+    # 通过快捷键开始测试
+    print('------通过快捷键 ctrl+alt+s 开始测试------')
+    keyboard.add_hotkey('ctrl+alt+s', start)
+    keyboard.wait()
 
 
 if __name__ == '__main__':
