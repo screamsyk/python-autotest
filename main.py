@@ -66,7 +66,7 @@ def operate_map():  # (1)操作地图
 
     # 循环操作
     interval = g_config.getfloat('operate_interval')
-    while not is_stop():
+    while not is_end():
 
         # 地图初始化
         map_obj = g_config['map_obj']
@@ -76,7 +76,7 @@ def operate_map():  # (1)操作地图
 
         # 鼠标缩放地图
         for init_scroll in init_scrolls:
-            if is_stop():
+            if is_end():
                 break
             pyautogui.moveTo(center_x, center_y)
             pyautogui.scroll(init_scroll)
@@ -85,7 +85,7 @@ def operate_map():  # (1)操作地图
         # 鼠标拖动地图，并缩放地图
         drag_num = 0
         for drag in drags:
-            if is_stop():
+            if is_end():
                 break
             drag_num += 1
             pyautogui.moveTo(drag['from'][0], drag['from'][1])
@@ -96,7 +96,7 @@ def operate_map():  # (1)操作地图
             if drag_num == 3:
                 drag_num = 0
                 for scroll in scrolls:
-                    if is_stop():
+                    if is_end():
                         break
                     pyautogui.moveTo(center_x, center_y)
                     pyautogui.scroll(scroll)
@@ -214,7 +214,7 @@ def save_to_chart(xData, yData_cpu, yData_memory, stat_info):  # (6)保存到图
         new_f.write(new_html)
 
 
-def is_stop():  # (7)是否停止程序
+def is_end():  # (7)是否结束测试了
     global g_end_time
     global g_is_running
     g_end_time = int(datetime.now().timestamp())
@@ -224,11 +224,11 @@ def is_stop():  # (7)是否停止程序
     return not g_is_running
 
 
-def keyboard_listener():  # (8)快捷键监听，停止程序
-    def stop():
+def keyboard_listener():  # (8)快捷键监听，结束测试
+    def end():
         global g_is_running
         g_is_running = False
-    keyboard.add_hotkey('ctrl+alt+e', stop)
+    keyboard.add_hotkey('ctrl+alt+e', end)
 
 
 def start():  # (9)开始测试
