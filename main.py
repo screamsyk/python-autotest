@@ -113,9 +113,9 @@ def record_data():  # (2)记录数据（每秒统计下 CPU 使用率、内存�
         time = datetime.now().strftime('%H:%M:%S')
         cpu_percent = psutil.cpu_percent()
         memory_percent = psutil.virtual_memory().percent
-        memory = float("%.2f" % psutil.virtual_memory().used/1024**2)
+        memory = psutil.virtual_memory().used/1024**2
         record = {'time': time, 'cpu_percent': cpu_percent,
-                  'memory_percent': memory_percent, 'memory': memory}
+                  'memory_percent': memory_percent, 'memory': float("%.2f" % memory)}
         g_records.append(record)
         sleep(interval)
     stat_data()
