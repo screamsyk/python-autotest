@@ -113,7 +113,7 @@ def record_data():  # (2)记录数据（每秒统计下 CPU 使用率、内存�
         time = datetime.now().strftime('%H:%M:%S')
         cpu_percent = psutil.cpu_percent()
         memory_percent = psutil.virtual_memory().percent
-        memory = psutil.virtual_memory().used/1024**2
+        memory = float("%.2f" % psutil.virtual_memory().used/1024**2)
         record = {'time': time, 'cpu_percent': cpu_percent,
                   'memory_percent': memory_percent, 'memory': memory}
         g_records.append(record)
@@ -148,7 +148,7 @@ def stat_data():  # (3)统计数据
     cpu_percent_avg = cpu_percent_sum/length
     memory_avg = memory_sum/length
     memory_percent_avg = memory_percent_sum/length
-    stat_info = f'（1）CPU 平均使用率：{float("%.2f" % cpu_percent_avg)}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{float("%.2f" % memory_percent_avg)}%；（4）内存使用用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{int(memory_avg)} MB'
+    stat_info = f'（1）CPU 平均使用率：{float("%.2f" % cpu_percent_avg)}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{float("%.2f" % memory_percent_avg)}%；（4）内存使用用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{float("%.2f" % memory_avg)} MB'
     save_to_excel(stat_info)
     save_to_json()
     save_to_chart(xData, yData_cpu, yData_memory, stat_info)
