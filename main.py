@@ -21,6 +21,8 @@ g_start_time = None
 g_end_time = None
 g_is_running = False
 g_records = []
+g_pname = ''  # 浏览器进程名
+g_pids = []  # 浏览器进程 id
 
 
 def operate_map():  # (1)操作地图
@@ -107,15 +109,26 @@ def operate_map():  # (1)操作地图
     g_driver.quit()
 
 
-def record_data():  # (2)记录数据（每秒统计下 CPU 使用率、内存使用率、已用内存）
+def record_data():  # (2)记录数据（每秒统计下总的 CPU 使用率、内存使用率、已用内存，以及浏览器对应的数据）
     interval = g_config.getfloat('record_interval')
     while g_is_running:
-        time = datetime.now().strftime('%H:%M:%S')
-        cpu_percent = psutil.cpu_percent()
-        memory_percent = psutil.virtual_memory().percent
-        memory = psutil.virtual_memory().used/1024**2
-        record = {'time': time, 'cpu_percent': cpu_percent,
-                  'memory_percent': memory_percent, 'memory': float("%.2f" % memory)}
+        browser_cpu_percent = 0
+        browser_memory_percent = 0
+        browser_memory = 0
+        for pid in g_pids:
+            process = psutil.Process(pid)
+            browser_cpu_percent += process.cpu_percent()
+            browser_memory_percent += process.memory_percent(memtype='vms')
+            browser_memory += process.memory_info().vms
+        record = {
+            'time': datetime.now().strftime('%H:%M:%S'),
+            'cpu_percent': psutil.cpu_percent(),
+            'memory_percent': psutil.virtual_memory().percent,
+            'memory': round(psutil.virtual_memory().used/1024**2, 2),
+            'browser_cpu_percent': round(browser_cpu_percent, 2),
+            'browser_memory_percent': round(browser_memory_percent, 2),
+            'browser_memory': round(browser_memory/1024**2, 2)
+        }
         g_records.append(record)
         sleep(interval)
     stat_data()
@@ -234,9 +247,12 @@ def keyboard_listener():  # (8)快捷键监听，结束测试
 def start():  # (9)开始测试
     global g_start_time
     global g_is_running
+    global g_pids
     print('------开始测试，通过快捷键 ctrl+alt+e 结束测试------')
     g_start_time = int(datetime.now().timestamp())
     g_is_running = True
+    g_pids = [process.info['pid'] for process in psutil.process_iter(
+        attrs=['pid', 'name']) if process.info['name'] == g_pname]
     t1 = Thread(target=operate_map, name='operate_map')
     t2 = Thread(target=record_data, name='record_data')
     t3 = Thread(target=keyboard_listener, name='keyboard_listener')
@@ -248,6 +264,7 @@ def start():  # (9)开始测试
 def main():
     global g_config
     global g_driver
+    global g_pname
 
     # 读取配置信息
     config = ConfigParser()
@@ -262,15 +279,19 @@ def main():
     if browser == 'chrome':
         path = 'webdriver/chromedriver'
         g_driver = webdriver.Chrome(executable_path=path)
+        g_pname = 'chrome.exe'
     elif browser == 'firefox':
         path = 'webdriver/geckodriver'
         g_driver = webdriver.Firefox(executable_path=path)
+        g_pname = 'firefox.exe'
     elif browser == 'edge':
         path = 'webdriver/MicrosoftWebDriver.exe'
         g_driver = webdriver.Edge(executable_path=path)
+        g_pname = 'MicrosoftEdge.exe'
     elif browser == 'ie':
         path = 'webdriver/IEDriverServer.exe'
         g_driver = webdriver.Ie(executable_path=path)
+        g_pname = 'iexplore.exe'
     g_driver.maximize_window()
     g_driver.get(g_config['url'])
 
