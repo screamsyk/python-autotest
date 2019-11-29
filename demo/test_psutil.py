@@ -14,12 +14,13 @@ def main():
     for pid in pids:
         process = psutil.Process(pid)
         cpu_percent += process.cpu_percent()
-        memory_percent += process.memory_percent()
+        memory_percent += process.memory_percent(memtype='vms')
         memory += process.memory_info().vms
         print(pid, process.cpu_percent(), process.memory_percent(),
               process.memory_info().vms/1024)
     print('------统计------')
     print('浏览器 CPU 使用率：', cpu_percent)
+    print('总 CPU 使用率：', psutil.cpu_percent())
     print('浏览器占用内存：', memory/1024)
     print('总占用内存：', used/1024)
     print('总内存：', total/1024)
