@@ -271,9 +271,6 @@ def main():
     elif browser == 'ie':
         path = 'webdriver/IEDriverServer.exe'
         g_driver = webdriver.Ie(executable_path=path)
-    elif browser == 'opera':
-        path = 'webdriver/operadriver.exe'
-        g_driver = webdriver.Opera(executable_path=path)
     g_driver.maximize_window()
     g_driver.get(g_config['url'])
 
