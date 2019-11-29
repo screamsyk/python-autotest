@@ -280,9 +280,12 @@ def main():
     # 是否需要登录
     if g_config.getboolean('need_login'):
         sleep(1)
-        inputs = g_driver.find_elements_by_tag_name('input')
-        inputs[0].send_keys(g_config['username'])
-        inputs[1].send_keys(g_config['password'])
+        try:
+            inputs = g_driver.find_elements_by_tag_name('input')
+            inputs[0].send_keys(g_config['username'])
+            inputs[1].send_keys(g_config['password'])
+        except:
+            pass
 
     # 通过快捷键开始测试
     print('------通过快捷键 ctrl+alt+s 开始测试------')
