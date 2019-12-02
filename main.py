@@ -76,9 +76,8 @@ def operate_map():
 
         # 地图初始化
         map_type = g_config['map_type']
-        map_obj = g_config['map_obj']
         if map_type == 'd2c':
-            script = f'{map_obj}.setCenter([106.5590013579515, 29.55910442310595]);{map_obj}.setZoom(12)'
+            script = f'd2cMap=d2cMap||map;d2cMap.setCenter([106.5590013579515, 29.55910442310595]);d2cMap.setZoom(12)'
         elif map_type == 'baidu':
             script = 'map.setCenter(new BMap.Point(11863203.19134712,3426106.9054011325));map.setZoom(13.7267941875)'
         elif map_type == 'gaode':
