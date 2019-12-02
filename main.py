@@ -116,16 +116,14 @@ def operate_map():
 def record_data():
     '''(2)记录数据
 
-    每秒统计下总的 CPU 使用率、内存使用率、已用内存，以及浏览器对应的数据
+    每秒统计下总的 CPU 使用率、内存使用率、内存使用大小，以及浏览器对应的数据
     '''
     interval = g_config.getfloat('record_interval')
     while g_is_running:
-        browser_cpu_percent = 0
         browser_memory_percent = 0
         browser_memory = 0
         for pid in g_pids:
             process = psutil.Process(pid)
-            browser_cpu_percent += process.cpu_percent()
             browser_memory_percent += process.memory_percent(memtype='vms')
             browser_memory += process.memory_info().vms
         record = {
@@ -133,7 +131,6 @@ def record_data():
             'cpu_percent': psutil.cpu_percent(),
             'memory_percent': psutil.virtual_memory().percent,
             'memory': round(psutil.virtual_memory().used/1024**2, 2),
-            'browser_cpu_percent': round(browser_cpu_percent, 2),
             'browser_memory_percent': round(browser_memory_percent, 2),
             'browser_memory': round(browser_memory/1024**2, 2)
         }
@@ -150,6 +147,7 @@ def stat_data():
     xData = []
     yData_cpu = []
     yData_memory = []
+    yData_browser_memory = []
     cpu_percent_sum = 0
     cpu_percent_avg = 0
     cpu_percent_over = 0
@@ -158,25 +156,31 @@ def stat_data():
     memory_percent_sum = 0
     memory_percent_avg = 0
     memory_percent_over = 0
+    browser_memory_percent_sum = 0
+    browser_memory_percent_avg = 0
     for record in g_records:
         xData.append(record['time'])
         yData_cpu.append(record['cpu_percent'])
         yData_memory.append(record['memory_percent'])
-        cpu_percent_sum = cpu_percent_sum+record['cpu_percent']
-        memory_sum = memory_sum+record['memory']
-        memory_percent_sum = memory_percent_sum+record['memory_percent']
+        yData_browser_memory.append(record['browser_memory_percent'])
+        cpu_percent_sum += record['cpu_percent']
+        memory_sum += record['memory']
+        memory_percent_sum += record['memory_percent']
+        browser_memory_percent_sum += record['browser_memory_percent']
         if record['cpu_percent'] >= 90:
-            cpu_percent_over = cpu_percent_over+1
+            cpu_percent_over += 1
         if record['memory_percent'] >= 90:
-            memory_percent_over = memory_percent_over+1
+            memory_percent_over += 1
     length = len(g_records)
     cpu_percent_avg = round(cpu_percent_sum/length, 2)
     memory_avg = round(memory_sum/length, 2)
-    memory_percent_avg = round(memory_percent_sum/length)
-    stat_info = f'（1）CPU 平均使用率：{cpu_percent_avg}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{memory_percent_avg}%；（4）内存使用用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{memory_avg} MB'
+    memory_percent_avg = round(memory_percent_sum/length, 2)
+    browser_memory_percent_avg = round(browser_memory_percent_sum/length, 2)
+    stat_info = f'（1）CPU 平均使用率：{cpu_percent_avg}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{memory_percent_avg}%；（4）内存使用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{memory_avg} MB；（6）内存平均使用率_浏览器：{browser_memory_percent_avg}%'
     save_to_excel(stat_info)
     save_to_json()
-    save_to_chart(xData, yData_cpu, yData_memory, stat_info)
+    save_to_chart(xData, yData_cpu, yData_memory,
+                  yData_browser_memory, stat_info)
     print('------程序停止------')
     print('测试结果：', stat_info)
 
@@ -191,22 +195,22 @@ def save_to_excel(stat_info):
         wb = openpyxl.Workbook()
     ws = wb.active
     now_col = 1 if ws.max_column in [0, 1] else ws.max_column+2
-    ws.column_dimensions[openpyxl.utils.get_column_letter(now_col)].width = 20
-    ws.column_dimensions[openpyxl.utils.get_column_letter(
-        now_col+1)].width = 20
-    ws.column_dimensions[openpyxl.utils.get_column_letter(
-        now_col+2)].width = 20
+    for i in range(0, 5):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(
+            now_col+i)].width = 20
     name_cell = ws.cell(row=1, column=now_col, value=g_config['name'])
     name_cell.font = openpyxl.styles.Font(bold=True)
     ws.merge_cells(start_row=1, start_column=now_col,
-                   end_row=1, end_column=now_col+2)
+                   end_row=1, end_column=now_col+4)
     ws.cell(
         row=2, column=now_col).value = f'统计（{datetime.fromtimestamp(g_start_time)}至{datetime.fromtimestamp(g_end_time)}）：{stat_info}'
     ws.merge_cells(start_row=2, start_column=now_col,
-                   end_row=2, end_column=now_col+2)
+                   end_row=2, end_column=now_col+4)
     ws.cell(row=3, column=now_col).value = 'CUP 使用率（%）'
     ws.cell(row=3, column=now_col+1).value = '内存使用率（%）'
-    ws.cell(row=3, column=now_col+2).value = '已用内存（MB）'
+    ws.cell(row=3, column=now_col+2).value = '内存使用大小（MB）'
+    ws.cell(row=3, column=now_col+3).value = '内存使用率_浏览器（%）'
+    ws.cell(row=3, column=now_col+4).value = '内存使用大小_浏览器（MB）'
     now_row = 4
     for record in g_records:
         ws.cell(row=now_row, column=now_col).value = record['cpu_percent']
@@ -214,6 +218,10 @@ def save_to_excel(stat_info):
                 1).value = record['memory_percent']
         ws.cell(row=now_row, column=now_col +
                 2).value = record['memory']
+        ws.cell(row=now_row, column=now_col +
+                3).value = record['browser_memory_percent']
+        ws.cell(row=now_row, column=now_col +
+                4).value = record['browser_memory']
         now_row = now_row+1
     wb.save(filename=filename)
 
@@ -227,11 +235,11 @@ def save_to_json():
         f.write(json.dumps(obj, ensure_ascii=False))
 
 
-def save_to_chart(xData, yData_cpu, yData_memory, stat_info):
+def save_to_chart(xData, yData_cpu, yData_memory, yData_browser_memory, stat_info):
     '''(6)保存数据到图表
     '''
     name = g_config['name']
-    with open('conf/line_template.html', 'r', encoding='utf-8') as f:
+    with open('conf/chart_template.html', 'r', encoding='utf-8') as f:
         html = f.read()
         new_html = html.replace('{{title}}', name).replace(
             '{{text}}', name).replace('{{subtext}}', stat_info).replace('{{dataScript}}', f'''
@@ -239,6 +247,7 @@ def save_to_chart(xData, yData_cpu, yData_memory, stat_info):
         var xData={json.dumps(xData)};
         var yData_cpu={json.dumps(yData_cpu)};
         var yData_memory={json.dumps(yData_memory)};
+        var yData_browser_memory={json.dumps(yData_browser_memory)};
     </script>
         ''')
     with open(f'{name}.html', 'w', encoding='utf-8') as new_f:
