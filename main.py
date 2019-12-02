@@ -25,7 +25,11 @@ g_pname = ''  # 浏览器进程名
 g_pids = []  # 浏览器进程 id
 
 
-def operate_map():  # (1)操作地图
+def operate_map():
+    '''(1)操作地图
+
+    生成操作过程-->循环操作地图
+    '''
 
     # 生成初始缩放过程
     init_scrolls = []
@@ -109,7 +113,11 @@ def operate_map():  # (1)操作地图
     g_driver.quit()
 
 
-def record_data():  # (2)记录数据（每秒统计下总的 CPU 使用率、内存使用率、已用内存，以及浏览器对应的数据）
+def record_data():
+    '''(2)记录数据
+
+    每秒统计下总的 CPU 使用率、内存使用率、已用内存，以及浏览器对应的数据
+    '''
     interval = g_config.getfloat('record_interval')
     while g_is_running:
         browser_cpu_percent = 0
@@ -134,7 +142,11 @@ def record_data():  # (2)记录数据（每秒统计下总的 CPU 使用率、�
     stat_data()
 
 
-def stat_data():  # (3)统计数据
+def stat_data():
+    '''(3)统计数据
+
+    统计 CPU 平均使用率、内存平均使用率等
+    '''
     xData = []
     yData_cpu = []
     yData_memory = []
@@ -158,10 +170,10 @@ def stat_data():  # (3)统计数据
         if record['memory_percent'] >= 90:
             memory_percent_over = memory_percent_over+1
     length = len(g_records)
-    cpu_percent_avg = cpu_percent_sum/length
-    memory_avg = memory_sum/length
-    memory_percent_avg = memory_percent_sum/length
-    stat_info = f'（1）CPU 平均使用率：{float("%.2f" % cpu_percent_avg)}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{float("%.2f" % memory_percent_avg)}%；（4）内存使用用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{float("%.2f" % memory_avg)} MB'
+    cpu_percent_avg = round(cpu_percent_sum/length, 2)
+    memory_avg = round(memory_sum/length, 2)
+    memory_percent_avg = round(memory_percent_sum/length)
+    stat_info = f'（1）CPU 平均使用率：{cpu_percent_avg}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{memory_percent_avg}%；（4）内存使用用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{memory_avg} MB'
     save_to_excel(stat_info)
     save_to_json()
     save_to_chart(xData, yData_cpu, yData_memory, stat_info)
@@ -169,7 +181,9 @@ def stat_data():  # (3)统计数据
     print('测试结果：', stat_info)
 
 
-def save_to_excel(stat_info):  # (4)保存数据到 excel
+def save_to_excel(stat_info):
+    '''(4)保存数据到 excel
+    '''
     filename = g_config['excel']
     if os.path.isfile(filename):
         wb = openpyxl.load_workbook(filename)
@@ -204,14 +218,18 @@ def save_to_excel(stat_info):  # (4)保存数据到 excel
     wb.save(filename=filename)
 
 
-def save_to_json():  # (5)保存数据到 json 文件
+def save_to_json():
+    '''(5)保存数据到 json 文件
+    '''
     name = g_config['name']
     obj = {'title': name, 'records': g_records}
     with open(f'{name}.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(obj, ensure_ascii=False))
 
 
-def save_to_chart(xData, yData_cpu, yData_memory, stat_info):  # (6)保存到图表
+def save_to_chart(xData, yData_cpu, yData_memory, stat_info):
+    '''(6)保存数据到图表
+    '''
     name = g_config['name']
     with open('conf/line_template.html', 'r', encoding='utf-8') as f:
         html = f.read()
@@ -227,7 +245,35 @@ def save_to_chart(xData, yData_cpu, yData_memory, stat_info):  # (6)保存到图
         new_f.write(new_html)
 
 
-def is_end():  # (7)是否结束测试了
+def start():
+    '''(7)开始测试
+    '''
+    global g_start_time
+    global g_is_running
+    global g_pids
+    keyboard.remove_hotkey('ctrl+alt+s')
+    print('------开始测试，通过快捷键 ctrl+alt+e 结束测试------')
+    keyboard.add_hotkey('ctrl+alt+e', end)
+    g_start_time = int(datetime.now().timestamp())
+    g_is_running = True
+    g_pids = [process.info['pid'] for process in psutil.process_iter(
+        attrs=['pid', 'name']) if process.info['name'] == g_pname]
+    t1 = Thread(target=operate_map, name='operate_map')
+    t2 = Thread(target=record_data, name='record_data')
+    t1.start()
+    t2.start()
+
+
+def end():
+    '''(8)结束测试
+    '''
+    global g_is_running
+    g_is_running = False
+
+
+def is_end():
+    '''(9)是否结束测试了
+    '''
     global g_end_time
     global g_is_running
     g_end_time = int(datetime.now().timestamp())
@@ -235,30 +281,6 @@ def is_end():  # (7)是否结束测试了
     if g_end_time-g_start_time > time:
         g_is_running = False
     return not g_is_running
-
-
-def keyboard_listener():  # (8)快捷键监听，结束测试
-    def end():
-        global g_is_running
-        g_is_running = False
-    keyboard.add_hotkey('ctrl+alt+e', end)
-
-
-def start():  # (9)开始测试
-    global g_start_time
-    global g_is_running
-    global g_pids
-    print('------开始测试，通过快捷键 ctrl+alt+e 结束测试------')
-    g_start_time = int(datetime.now().timestamp())
-    g_is_running = True
-    g_pids = [process.info['pid'] for process in psutil.process_iter(
-        attrs=['pid', 'name']) if process.info['name'] == g_pname]
-    t1 = Thread(target=operate_map, name='operate_map')
-    t2 = Thread(target=record_data, name='record_data')
-    t3 = Thread(target=keyboard_listener, name='keyboard_listener')
-    t1.start()
-    t2.start()
-    t3.start()
 
 
 def main():
