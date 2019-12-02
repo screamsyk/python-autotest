@@ -69,6 +69,7 @@ def operate_map():
     scrolls.extend([-1000 for i in range(3)])
     scrolls.extend([1000 for i in range(4)])
     scrolls.extend([-1000 for i in range(1)])
+    
     # 循环操作
     interval = g_config.getfloat('operate_interval')
     while not is_end():
