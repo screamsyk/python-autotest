@@ -33,8 +33,8 @@ def operate_map():
 
     # 生成初始缩放过程
     init_scrolls = []
-    init_scrolls.extend([-1000 for i in range(8)])
-    init_scrolls.extend([1000 for i in range(15)])
+    init_scrolls.extend([-1000 for i in range(6)])
+    init_scrolls.extend([1000 for i in range(12)])
 
     # 生成拖动过程（顺时针螺旋形）
     screen_width, screen_height = pyautogui.size()  # 屏幕大小
@@ -66,10 +66,9 @@ def operate_map():
 
     # 生成拖动时的缩放过程（缩-放-缩）
     scrolls = []
-    scrolls.extend([-1000 for i in range(4)])
-    scrolls.extend([1000 for i in range(6)])
-    scrolls.extend([-1000 for i in range(2)])
-
+    scrolls.extend([-1000 for i in range(3)])
+    scrolls.extend([1000 for i in range(4)])
+    scrolls.extend([-1000 for i in range(1)])
     # 循环操作
     interval = g_config.getfloat('operate_interval')
     while not is_end():
@@ -79,7 +78,9 @@ def operate_map():
         if map_type == 'd2c':
             script = f'd2cMap=d2cMap||map;d2cMap.setCenter([106.5590013579515, 29.55910442310595]);d2cMap.setZoom(12)'
         elif map_type == 'baidu':
-            script = 'map.setCenter(new BMap.Point(11863203.19134712,3426106.9054011325));map.setZoom(13.7267941875)'
+            g_driver.execute_script('map.setZoom(13.7267941875)')
+            sleep(interval)
+            script = 'map.setCenter(new BMap.Point(11863203.19134712,3426106.9054011325))'
         elif map_type == 'gaode':
             script = 'themap.setCenter(new AMap.LngLat(106.562411,29.556381));themap.setZoom(13)'
         g_driver.execute_script(script)
@@ -128,9 +129,12 @@ def record_data():
         browser_memory_percent = 0
         browser_memory = 0
         for pid in g_pids:
-            process = psutil.Process(pid)
-            browser_memory_percent += process.memory_percent(memtype='vms')
-            browser_memory += process.memory_info().vms
+            try:
+                process = psutil.Process(pid)
+                browser_memory_percent += process.memory_percent(memtype='vms')
+                browser_memory += process.memory_info().vms
+            except:
+                pass
         record = {
             'time': datetime.now().strftime('%H:%M:%S'),
             'cpu_percent': psutil.cpu_percent(),
