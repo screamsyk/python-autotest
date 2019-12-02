@@ -42,7 +42,7 @@ def operate_map():
     drags = []
     direction = 'right'  # 拖动方向
     num = 0  # 方向上的拖动次数
-    total = 50
+    total = g_config.getint('path_total')
     while total > 0:
         total -= 1
         if direction == 'right':  # 向右
@@ -69,7 +69,7 @@ def operate_map():
     scrolls.extend([-1000 for i in range(3)])
     scrolls.extend([1000 for i in range(4)])
     scrolls.extend([-1000 for i in range(1)])
-    
+
     # 循环操作
     interval = g_config.getfloat('operate_interval')
     while not is_end():
