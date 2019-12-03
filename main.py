@@ -79,11 +79,9 @@ def operate_map():
         if map_type == 'd2c':
             script = f'd2cMap=d2cMap||map;d2cMap.setCenter([106.5590013579515, 29.55910442310595]);d2cMap.setZoom(12)'
         elif map_type == 'baidu':
-            g_driver.execute_script('map.setZoom(13.7267941875)')
-            sleep(interval)
-            script = 'map.setCenter(new BMap.Point(11863203.19134712,3426106.9054011325))'
+            script = 'map.centerAndZoom(new BMap.Point(11863203.19134712,3426106.9054011325),13.7267941875)'
         elif map_type == 'gaode':
-            script = 'themap.setCenter(new AMap.LngLat(106.562411,29.556381));themap.setZoom(13)'
+            script = 'themap.setZoomAndCenter(13,new AMap.LngLat(106.562411,29.556381))'
         g_driver.execute_script(script)
         sleep(interval)
 
@@ -116,8 +114,8 @@ def operate_map():
                     sleep(interval)
 
     # 退出
-    g_driver.close()
-    g_driver.quit()
+    # g_driver.close()
+    # g_driver.quit()
 
 
 def record_data():
