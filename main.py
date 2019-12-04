@@ -114,8 +114,8 @@ def operate_map():
                     sleep(interval)
 
     # 退出
-    # g_driver.close()
-    # g_driver.quit()
+    g_driver.close()
+    g_driver.quit()
 
 
 def record_data():
