@@ -190,7 +190,7 @@ def stat_data():
     browser_memory_avg = round(browser_memory_sum/length, 2)
     stat_info = f'（1）CPU 平均使用率：{cpu_percent_avg}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{memory_percent_avg}%；（4）内存使用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{memory_avg} MB；（6）内存平均使用率_浏览器：{browser_memory_percent_avg}%；（7）内存平均使用大小_浏览器：{browser_memory_avg} MB'
     save_to_excel(stat_info)
-    save_to_json()
+    save_to_json(stat_info)
     save_to_chart(xData, yData_cpu, yData_memory,
                   yData_browser_memory, stat_info)
     print('------程序停止------')
@@ -238,11 +238,11 @@ def save_to_excel(stat_info):
     wb.save(filename=filename)
 
 
-def save_to_json():
+def save_to_json(stat_info):
     '''(5)保存数据到 json 文件
     '''
     name = g_config['name']
-    obj = {'title': name, 'records': g_records}
+    obj = {'title': name, 'stat_info': stat_info, 'records': g_records}
     with open(f'{name}.json', 'w', encoding='utf-8') as f:
         f.write(json.dumps(obj, ensure_ascii=False))
 
