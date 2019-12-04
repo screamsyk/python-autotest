@@ -166,6 +166,8 @@ def stat_data():
     memory_percent_over = 0
     browser_memory_percent_sum = 0
     browser_memory_percent_avg = 0
+    browser_memory_sum = 0
+    browser_memory_avg = 0
     for record in g_records:
         xData.append(record['time'])
         yData_cpu.append(record['cpu_percent'])
@@ -175,6 +177,7 @@ def stat_data():
         memory_sum += record['memory']
         memory_percent_sum += record['memory_percent']
         browser_memory_percent_sum += record['browser_memory_percent']
+        browser_memory_sum += record['browser_memory']
         if record['cpu_percent'] >= 90:
             cpu_percent_over += 1
         if record['memory_percent'] >= 90:
@@ -184,7 +187,8 @@ def stat_data():
     memory_avg = round(memory_sum/length, 2)
     memory_percent_avg = round(memory_percent_sum/length, 2)
     browser_memory_percent_avg = round(browser_memory_percent_sum/length, 2)
-    stat_info = f'（1）CPU 平均使用率：{cpu_percent_avg}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{memory_percent_avg}%；（4）内存使用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{memory_avg} MB；（6）内存平均使用率_浏览器：{browser_memory_percent_avg}%'
+    browser_memory_avg = round(browser_memory_sum/length, 2)
+    stat_info = f'（1）CPU 平均使用率：{cpu_percent_avg}%；（2）CPU 使用率达 90% 及以上次数：{cpu_percent_over}；（3）内存平均使用率：{memory_percent_avg}%；（4）内存使用率达 90% 及以上次数：{memory_percent_over}；（5）内存平均使用大小：{memory_avg} MB；（6）内存平均使用率_浏览器：{browser_memory_percent_avg}%；（7）内存平均使用大小_浏览器：{browser_memory_avg} MB'
     save_to_excel(stat_info)
     save_to_json()
     save_to_chart(xData, yData_cpu, yData_memory,
