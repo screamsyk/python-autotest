@@ -75,6 +75,7 @@ def operate_map():
     while not is_end():
 
         # 地图初始化
+        print('地图初始化：', datetime.now().strftime('%H:%M:%S'))
         map_type = g_config['map_type']
         if map_type == 'd2c':
             script = f'd2cMap=d2cMap||map;d2cMap.setCenter([106.5590013579515, 29.55910442310595]);d2cMap.setZoom(12)'
